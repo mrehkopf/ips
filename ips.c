@@ -86,7 +86,20 @@ int main(int argc, char **argv) {
       break;
     }
     /* end tag */
-    if(ipsaddr == 0x454f46 && ftell(ips) == ipsflen) {
+    if(ipsaddr == 0x454f46 && ftell(ips) >= (ipsflen - 3)) {
+      printf("EOF");
+      if(ftell(ips) == (ipsflen - 3)) {
+        lastsize = cursize;
+        cursize = read24(ips);
+        printf(", padding to size %06lx\n", cursize);
+        if((buffer = realloc(buffer, cursize)) == NULL) {
+          fprintf(stderr, "could not reserve more memory\n");
+          break;
+        }
+        memset(buffer+lastsize, 0xff, cursize-lastsize);
+      } else {
+        printf("\n");
+      }
       break;
     } else {
       if((ipsaddr + offset) < 0) {
